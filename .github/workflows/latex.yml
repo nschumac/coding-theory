@@ -23,26 +23,12 @@ jobs:
       - name: Compile LaTeX with Tectonic
         run: tectonic -X build
 
-      - name: Commit PDF to repository
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          git add build/
-          # Commit only if there are changes
-          if ! git diff --staged --quiet; then
-            git commit -m "CI: Auto-compile and commit latex pdf"
-            git push
-          else
-            echo "No changes to commit."
-          fi
-
       - name: Create Release and Upload PDF
         uses: softprops/action-gh-release@v2
         with:
           # This creates a new release for each build, tagged with the build number
-          tag_name: build-${{ github.run_number }}
+          tag_name: release
           name: Build ${{ github.run_number }}
           body: "Automated PDF build triggered by commit ${{ github.sha }}"
-          prerelease: true
           # This points to the correct path for the compiled PDF
           files: build/*/*.pdf
