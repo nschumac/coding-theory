@@ -27,7 +27,7 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-          git add build/coding_theory/
+          git add build/
           # Commit only if there are changes
           if ! git diff --staged --quiet; then
             git commit -m "CI: Auto-compile and commit latex pdf"
