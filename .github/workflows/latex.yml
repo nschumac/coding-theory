@@ -45,4 +45,4 @@ jobs:
           body: "Automated PDF build triggered by commit ${{ github.sha }}"
           prerelease: true
           # This points to the correct path for the compiled PDF
-          files: build/coding_theory/exam_sheet.pdf
+          files: build/*/*.pdf
