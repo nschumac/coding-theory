@@ -1,40 +1,48 @@
-# GitHub Action for compiling LaTeX documents
-name: Compile LaTeX
+# GitHub Action to compile LaTeX, commit the PDF, and create a release
+name: Compile, Commit & Release PDF
 
-# Controls when the action will run.
-# This workflow runs on pushes to the 'main' branch.
+# Run on pushes to the 'main' branch
 on:
   push:
     branches: [ main ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# Grant permissions for writing to the repository (for commit) and creating releases
+permissions:
+  contents: write
+
 jobs:
-  # This workflow contains a single job called "compile_latex"
-  compile_latex:
-    # The type of runner that the job will run on
+  build_latex:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - name: Checkout Repo
-      uses: actions/checkout@v4
+      - name: Checkout Repo
+        uses: actions/checkout@v4
 
-    # Sets up the Tectonic typesetting system
-    - name: Setup Tectonic
-      uses: wtfjoke/setup-tectonic@v3
-        # You can specify a Tectonic version, or leave it for the latest
-        # tectonic-version: '0.14.1'
+      - name: Setup Tectonic
+        uses: wtfjoke/setup-tectonic@v3
 
-    # Compiles the LaTeX file.
-    # Replace 'main.tex' with the name of your main LaTeX file.
-    - name: Compile LaTeX
-      run: tectonic -X build
+      - name: Compile LaTeX with Tectonic
+        run: tectonic -X build
 
-    # Optional: Upload the compiled PDF as an artifact
-    # The PDF will be available for download from the Actions tab of your repository.
-    - name: Upload PDF
-      uses: actions/upload-artifact@v4
-      with:
-        name: compiled-pdf
-        path: coding-theory.pdf # Make sure this matches the output file name
+      - name: Commit PDF to repository
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add build/coding_theory/
+          # Commit only if there are changes
+          if ! git diff --staged --quiet; then
+            git commit -m "CI: Auto-compile and commit latex pdf"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Create Release and Upload PDF
+        uses: softprops/action-gh-release@v2
+        with:
+          # This creates a new release for each build, tagged with the build number
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          body: "Automated PDF build triggered by commit ${{ github.sha }}"
+          prerelease: true
+          # This points to the correct path for the compiled PDF
+          files: build/coding_theory/exam_sheet.pdf
