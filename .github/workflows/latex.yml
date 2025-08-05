@@ -18,24 +18,23 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - name: Checkout Repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     # Sets up the Tectonic typesetting system
     - name: Setup Tectonic
       uses: wtfjoke/setup-tectonic@v3
-      # with:
         # You can specify a Tectonic version, or leave it for the latest
         # tectonic-version: '0.14.1'
 
     # Compiles the LaTeX file.
     # Replace 'main.tex' with the name of your main LaTeX file.
     - name: Compile LaTeX
-      run: tectonic -X build
+      run: tectonic main.tex
 
     # Optional: Upload the compiled PDF as an artifact
     # The PDF will be available for download from the Actions tab of your repository.
     - name: Upload PDF
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: compiled-pdf
-        path: coding-theory.pdf # Make sure this matches the output file name
+        path: main.pdf # Make sure this matches the output file name
