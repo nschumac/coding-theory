@@ -29,7 +29,7 @@ jobs:
     # Compiles the LaTeX file.
     # Replace 'main.tex' with the name of your main LaTeX file.
     - name: Compile LaTeX
-      run: tectonic main.tex
+      run: tectonic -X build
 
     # Optional: Upload the compiled PDF as an artifact
     # The PDF will be available for download from the Actions tab of your repository.
@@ -37,4 +37,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: compiled-pdf
-        path: main.pdf # Make sure this matches the output file name
+        path: coding-theory.pdf # Make sure this matches the output file name
