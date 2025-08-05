@@ -1,0 +1,153 @@
+\section{Upper \& Lower Bounds on Codes}
+
+A central question in coding theory is: for a given block length $n$ and alphabet size $q$, what is the best trade-off between the number of codewords (or the rate, $R$) and the error-correcting capability (the distance, $d$)? This chapter explores the fundamental limits on these parameters.
+
+We will study two types of bounds:
+\begin{itemize}
+    \item \textbf{Upper Bounds:} These establish a ceiling on how good a code can be. They tell us that no code with parameters $(n, d)$ can have more than a certain number of codewords. These are impossibility results.
+    \item \textbf{Lower Bounds:} These establish a floor on how good a code can be. They guarantee the existence of a code with at least a certain number of codewords for a given $(n, d)$. These are existence results, often proven by showing a construction method.
+\end{itemize}
+
+\subsection{Upper Bounds (Limits on Performance)}
+
+\subsubsection{The Singleton Bound}
+
+The Singleton bound is one of the simplest upper bounds. It connects the dimension, block length, and distance of any code, not just linear ones.
+
+\begin{theorem}[Singleton Bound]
+For any $(n, M, d)_q$ code,
+\[ M \le q^{n-d+1} \]
+For any linear $[n, k, d]_q$ code, this is equivalent to:
+\[ d \le n - k + 1 \quad \text{or} \quad k \le n - d + 1 \]
+\end{theorem}
+
+\begin{proof}
+The proof is surprisingly simple. Take any code $C$ with $M$ codewords. Now, "puncture" the code by deleting the first $d-1$ coordinates from every codeword.
+Let the original codewords be $\vec{c} = (c_1, c_2, \dots, c_n)$.
+Let the new, shortened codewords be $\vec{c}' = (c_d, c_{d+1}, \dots, c_n)$.
+
+Let's consider two distinct original codewords, $\vec{c}_i$ and $\vec{c}_j$. By definition, their Hamming distance is $\triangle(\vec{c}_i, \vec{c}_j) \ge d$. This means they differ in at least $d$ positions.
+
+When we delete the first $d-1$ coordinates, they can differ in at most $d-1$ of these deleted positions. Therefore, they must still differ in at least one of the remaining $n-(d-1)$ positions. This means the new, shortened codewords $\vec{c}_i'$ and $\vec{c}_j'$ must still be distinct.
+
+So, after puncturing, we have $M$ distinct codewords of length $n-d+1$. The total number of possible vectors of this new length is $q^{n-d+1}$. Since all our new codewords must fit into this space, we must have:
+\[ M \le q^{n-d+1} \]
+For a linear code, $M=q^k$, so $q^k \le q^{n-d+1}$, which simplifies to $k \le n-d+1$.
+\end{proof}
+Codes that meet the Singleton bound with equality are called \textbf{Maximum Distance Separable (MDS)} codes.
+
+\subsubsection{The Hamming Bound (Sphere Packing Bound)}
+
+This bound comes from a simple geometric idea: if a code is to correct $t$ errors, the Hamming balls of radius $t$ around each codeword must be disjoint.
+
+\begin{theorem}[Hamming Bound]
+Let $C$ be an $(n, M, d)_q$ code. Let $t = \lfloor \frac{d-1}{2} \rfloor$ be the number of errors it can correct. Then:
+\[ M \cdot Vol_q(t, n) \le q^n \]
+where $Vol_q(t, n) = \sum_{i=0}^t \binom{n}{i}(q-1)^i$ is the volume of a Hamming ball of radius $t$.
+\end{theorem}
+
+\begin{proof}
+Consider the $M$ codewords in $C$. Around each codeword $\vec{c}_i$, draw a Hamming ball $B(\vec{c}_i, t)$ of radius $t$.
+If a received word $\vec{y}$ is in $B(\vec{c}_i, t)$, it will be decoded to $\vec{c}_i$. For this decoding to be unambiguous, all these balls must be disjoint. If a vector $\vec{y}$ were in two balls, say $B(\vec{c}_i, t)$ and $B(\vec{c}_j, t)$, then $\triangle(\vec{y}, \vec{c}_i) \le t$ and $\triangle(\vec{y}, \vec{c}_j) \le t$. By the triangle inequality, this would mean $\triangle(\vec{c}_i, \vec{c}_j) \le \triangle(\vec{c}_i, \vec{y}) + \triangle(\vec{y}, \vec{c}_j) \le 2t$. But we know $d \ge 2t+1$, so this is a contradiction. Thus, the balls are disjoint.
+
+The volume of each ball is $Vol_q(t, n)$. Since there are $M$ such disjoint balls, their total volume is $M \cdot Vol_q(t, n)$. This total volume cannot exceed the volume of the entire space $\mathbb{F}_q^n$, which is $q^n$. The inequality follows.
+\end{proof}
+
+\textbf{Asymptotic Form:} For large $n$, using our approximation $Vol_q(t, n) \approx q^{n H_q(t/n)}$, and setting $t/n \approx d/(2n) = \delta/2$, the Hamming bound becomes:
+\[ q^k \cdot q^{n H_q(\delta/2)} \lesssim q^n \]
+Taking $\log_q$ of both sides and dividing by $n$ gives an upper bound on the rate $R = k/n$:
+\[ R \le 1 - H_q(\delta/2) \]
+Codes that meet the Hamming bound with equality are called \textbf{perfect codes}. Hamming codes are an example.
+
+\subsubsection{The Plotkin Bound}
+
+The Plotkin bound is particularly effective for codes with a very large minimum distance.
+
+\begin{theorem}[Plotkin Bound, Binary Case]
+For a binary $(n, M, d)_2$ code where $d > n/2$,
+\[ M \le \frac{2d}{2d - n} \]
+\end{theorem}
+
+\begin{proof}
+Let the codewords be $\vec{c}_1, \dots, \vec{c}_M$. Consider the sum of all pairwise Hamming distances:
+\[ S = \sum_{1 \le i < j \le M} \triangle(\vec{c}_i, \vec{c}_j) \]
+Since every pairwise distance is at least $d$, we have a lower bound on $S$:
+\[ S \ge \binom{M}{2} d = \frac{M(M-1)}{2} d \]
+Now, let's find an upper bound on $S$. Let's write the $M$ codewords as rows of a matrix. Let $w_j$ be the number of 1s in column $j$. Then the number of 0s in column $j$ is $M-w_j$. The number of pairs that differ in column $j$ is $w_j(M-w_j)$. This quantity is maximized when $w_j = M/2$, giving a maximum value of $M^2/4$.
+Summing over all columns:
+\[ S = \sum_{j=1}^n w_j(M-w_j) \le \sum_{j=1}^n \frac{M^2}{4} = \frac{nM^2}{4} \]
+Combining the lower and upper bounds on $S$:
+\[ \frac{M(M-1)}{2} d \le \frac{nM^2}{4} \]
+\[ 2(M-1)d \le nM \]
+\[ 2Md - 2d \le nM \]
+\[ M(2d - n) \le 2d \]
+Since we assumed $d > n/2$, the term $(2d-n)$ is positive, so we can divide by it:
+\[ M \le \frac{2d}{2d - n} \]
+\end{proof}
+
+\subsection{Lower Bounds (Guarantees of Existence)}
+
+\subsubsection{The Gilbert-Varshamov Bound}
+
+This is the most famous lower bound and provides a constructive proof for the existence of good codes.
+
+\begin{theorem}[Gilbert-Varshamov Bound]
+There exists an $(n, M, d)_q$ code with
+\[ M \ge \frac{q^n}{Vol_q(d-1, n)} \]
+\end{theorem}
+
+\begin{proof}
+We prove this by a greedy construction.
+\begin{enumerate}
+    \item \textbf{Initialize:} Start with an empty code, $C = \emptyset$.
+    \item \textbf{Step 1:} Choose any vector $\vec{c}_1$ from $\mathbb{F}_q^n$ and add it to $C$.
+    \item \textbf{Step 2:} Choose any vector $\vec{c}_2$ such that $\triangle(\vec{c}_2, \vec{c}_1) \ge d$. Add $\vec{c}_2$ to $C$.
+    \item \textbf{Step i:} Choose a vector $\vec{c}_i$ such that $\triangle(\vec{c}_i, \vec{c}_j) \ge d$ for all previously chosen codewords $\vec{c}_j \in C$ ($j < i$). Add $\vec{c}_i$ to $C$.
+    \item \textbf{Termination:} Continue this process until no more such vectors can be found.
+\end{enumerate}
+The final code $C$ has minimum distance at least $d$ by construction. Let's find a lower bound on its size, $M = |C|$.
+
+The process terminates when every vector $\vec{v} \in \mathbb{F}_q^n$ is within a distance of $d-1$ of at least one codeword in our constructed code $C$. In other words, the union of all Hamming balls of radius $d-1$ centered at our codewords covers the entire space:
+\[ \bigcup_{\vec{c} \in C} B(\vec{c}, d-1) = \mathbb{F}_q^n \]
+The volume of the union is less than or equal to the sum of the individual volumes:
+\[ q^n = \left| \bigcup_{\vec{c} \in C} B(\vec{c}, d-1) \right| \le \sum_{\vec{c} \in C} |B(\vec{c}, d-1)| = M \cdot Vol_q(d-1, n) \]
+Rearranging this gives the desired bound: $M \ge q^n / Vol_q(d-1, n)$.
+\end{proof}
+
+\textbf{Asymptotic Form:} Using the volume approximation $Vol_q(d-1, n) \approx q^{n H_q((d-1)/n)}$, and setting $(d-1)/n \approx \delta$, the GV bound becomes:
+\[ q^k \gtrsim \frac{q^n}{q^{n H_q(\delta)}} \]
+Taking $\log_q$ and dividing by $n$ gives a lower bound on the rate $R$:
+\[ R \ge 1 - H_q(\delta) \]
+
+\textbf{For Linear Codes:} A similar argument shows the existence of a linear $[n, k, d]_q$ code satisfying the same asymptotic bound. One can construct the parity-check matrix $H$ greedily, adding columns one by one, ensuring that no $d-1$ columns are linearly dependent.
+
+\subsection{Summary of Bounds}
+
+The bounds define a region in the space of $(R, \delta)$ where good codes can exist.
+
+\begin{center}
+\begin{tabular}{l|c|c}
+\toprule
+\textbf{Bound} & \textbf{Type} & \textbf{Asymptotic Form ($R$ vs. $\delta$)} \\
+\midrule
+Singleton & Upper & $R \le 1 - \delta$ \\
+Hamming & Upper & $R \le 1 - H_q(\delta/2)$ \\
+Plotkin & Upper & $R \le 1 - 2\delta$ (for $q=2, \delta > 1/2$) \\
+Gilbert-Varshamov & Lower & $R \ge 1 - H_q(\delta)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%\begin{figure}[h!]
+%    \centering
+%    \includegraphics[width=0.8\textwidth]{rate_vs_distance_bounds.png}
+%    \caption{A conceptual plot showing the bounds on code rate vs. relative distance for binary codes. Codes can only exist in the region below the upper bounds and above the lower bounds. There is a significant gap between what we know is possible (GV bound) and what we know is impossible (Hamming/Singleton bounds).}
+%\end{figure}
+
+\textbf{Which bound is best?}
+\begin{itemize}
+    \item The \textbf{Singleton bound} is the most general but often the weakest.
+    \item The \textbf{Hamming bound} is better than the Singleton bound for small $\delta$.
+    \item The \textbf{Plotkin bound} is very strong for large $\delta$ (it's better than Singleton for $\delta > 1-1/q$), showing that high-rate codes cannot have very large distances.
+    \item The \textbf{Gilbert-Varshamov bound} is the best known lower bound for general codes over a wide range of parameters. For many decades, it was the benchmark for existence proofs.
+\end{itemize}

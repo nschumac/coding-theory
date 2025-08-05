@@ -1,0 +1,81 @@
+
+\section{Probability \& Entropy}
+
+So far, we have studied the deterministic properties of codes. However, coding theory is fundamentally about reliable communication over unreliable channels, which requires a probabilistic perspective. In this chapter, we introduce essential tools from probability and information theory that allow us to analyze the performance of codes and prove the existence of "good" codes.
+
+\subsection{Essential Probabilistic Tools}
+
+We begin with two fundamental inequalities that are used throughout coding theory to bound the probabilities of error events.
+
+\begin{description}
+    \item[Union Bound] This is a simple but incredibly useful principle. It states that the probability of at least one of several events occurring is no greater than the sum of their individual probabilities.
+
+    Formally, for any set of events $A_1, A_2, \dots, A_m$,
+    \[
+        P(A_1 \cup A_2 \cup \dots \cup A_m) \le \sum_{i=1}^m P(A_i)
+    \]
+    In coding theory, we often use this to bound the overall probability of a decoding error by summing the probabilities of individual error events (e.g., the probability that a random noise vector transforms the sent codeword into another specific codeword).
+
+    \item[Chernoff Bound] The Chernoff bound provides an exponentially decreasing upper bound on the probability that a sum of independent random variables deviates significantly from its expected value. It is much stronger than looser bounds like Markov's or Chebyshev's inequality.
+
+    A common form used in coding theory relates to the sum of independent Bernoulli trials. Let $X_1, \dots, X_n$ be independent random variables where $P(X_i=1) = p$ and $P(X_i=0) = 1-p$. Let $X = \sum_{i=1}^n X_i$. The expected value is $E[X] = np$. The Chernoff bound states that for any $\delta > 0$,
+    \[
+        P(X \ge (1+\delta)np) \le e^{-D(p(1+\delta) || p)n}
+    \]
+    and
+    \[
+        P(X \le (1-\delta)np) \le e^{-D(p(1-\delta) || p)n}
+    \]
+    where $D(a || p) = a \log\frac{a}{p} + (1-a)\log\frac{1-a}{1-p}$ is the Kullback-Leibler (KL) divergence. This bound is crucial for proving that random codes are, with high probability, good codes.
+\end{description}
+
+\subsection{Entropy: A Measure of Uncertainty}
+
+The concept of entropy, borrowed from statistical mechanics, was adapted by Claude Shannon to quantify the uncertainty or "information content" of a random variable.
+
+\begin{description}
+    \item[Intuition] Imagine a random event. If the event is highly predictable (e.g., a loaded coin that almost always comes up heads), its outcome provides very little new information. If the event is highly unpredictable (e.g., a fair coin flip), its outcome is surprising and provides more information. Entropy measures this average uncertainty.
+
+    \item[Binary Entropy] For a binary random variable that takes the value 1 with probability $p$ and 0 with probability $1-p$, the \textbf{binary entropy function}, $H_2(p)$, measures its uncertainty in bits.
+    \[
+        H_2(p) = -p \log_2(p) - (1-p) \log_2(1-p)
+    \]
+    \begin{itemize}
+        \item If $p=0$ or $p=1$, the outcome is certain, and $H_2(p) = 0$. There is no uncertainty.
+        \item If $p=0.5$, the outcome is maximally uncertain, and $H_2(0.5) = 1$ bit.
+    \end{itemize}
+    The base of the logarithm determines the units; for coding theory, we almost always use base 2.
+
+    \item[q-ary Entropy] The concept generalizes to an alphabet of size $q$. If a random variable can take $q$ different values with probabilities $p_1, \dots, p_q$, its entropy is $H_q(p_1, \dots, p_q) = -\sum_{i=1}^q p_i \log_q(p_i)$.
+    
+    A special case relevant to us is when we are interested in the probability of a symbol being one specific value (with probability $p$) versus any of the other $q-1$ values (with total probability $1-p$). The entropy in this context is often written as:
+    \[
+        H_q(p) = -p\log_q(p) - (1-p)\log_q(1-p) + p\log_q(q-1)
+    \]
+    This form will be instrumental in estimating the size of Hamming balls.
+\end{description}
+
+\subsection{The Volume of a Hamming Ball}
+
+The Hamming ball is a central concept for understanding error correction. The ability of a code to correct errors is directly related to whether the Hamming balls around its codewords are disjoint.
+
+\begin{description}
+    \item[Definition] The \textbf{Hamming ball} of radius $r$ around a vector $\vec{c} \in \mathbb{F}_q^n$, denoted $B(\vec{c}, r)$, is the set of all vectors $\vec{y} \in \mathbb{F}_q^n$ such that the Hamming distance $\triangle(\vec{c}, \vec{y}) \le r$.
+    
+    The \textbf{volume} of this ball, denoted $Vol_q(r, n)$, is the number of vectors it contains. Since the space is symmetric, this volume does not depend on the center $\vec{c}$. We can calculate it by counting the number of vectors with weight at most $r$:
+    \[
+        Vol_q(r, n) = |B(\vec{0}, r)| = \sum_{i=0}^r \binom{n}{i}(q-1)^i
+    \]
+    The term $\binom{n}{i}$ chooses $i$ positions to have errors, and $(q-1)^i$ accounts for the $q-1$ possible non-zero symbols that can appear in each of those positions.
+
+    \item[Approximating the Volume] Calculating the sum above is cumbersome for large $n$. Fortunately, information theory provides a beautiful and powerful approximation. The largest term in the sum dominates the value, and using Stirling's approximation for the binomial coefficient, we arrive at the following theorem.
+
+    \begin{theorem}[Volume of a Hamming Ball]
+    For an alphabet of size $q \ge 2$, an error probability $0 \le p \le 1 - 1/q$, and large block length $n$, the volume of a Hamming ball of radius $pn$ is approximately:
+    \[
+        Vol_q(pn, n) \approx q^{n H_q(p)}
+    \]
+    where $H_q(p)$ is the q-ary entropy function.
+    \end{theorem}
+    This result is profound. It connects a geometric property (the volume of a ball) to an information-theoretic one (entropy). It tells us that the number of typical error patterns of a certain density $p$ occupies a "volume" whose size is determined by the entropy. This approximation is the cornerstone of the Gilbert-Varshamov bound and proofs about the capacity of noisy channels.
+\end{description}

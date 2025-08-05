@@ -1,0 +1,52 @@
+\section{Definitions}
+\begin{description}
+    \item[Code] A code of \textbf{block length} $n$ over an \textbf{alphabet} $\Sigma$ is a subset of $\Sigma^n$
+        \footnote{We define $q = |\Sigma|$}.
+
+        \textbf{Ex:}
+        \begin{itemize}
+            \item alphabet $\Sigma = \{0, 1\}$ and block length $n=2$ a code could be $C = \{00, 11\}$.
+            \item alphabet $\Sigma = \{0, 1, 2\}$ and block length $n=1$ a code could be $C = \{1, 2\}$.
+        \end{itemize}
+
+        \textbf{Alternative view:} Mapping from messages to codewords. Code $C$ is the image of the mapping.
+
+        \textit{message space:} $\{0, 1\}^3$ \textit{codeword space:} $\{0, 1\}^4$
+    \item[Alphabet] An \textit{alphabet} $\Sigma$ is a finite non-empty set of symbols.
+    \item[Block Length] The \textit{block length} refers to the \textit{length} of code words in a code
+    \item[Dimension] The \textit{Dimension} of a code $C \subset \Sigma^n$ is $k = \log_q{|C|}$
+        where $q = |\Sigma|$
+
+        \textbf{Ex:} We have the image of a mapping $\{0, 1\}^3 \rightarrow \{0, 1\}^4$
+        \begin{itemize}
+            \item \textbf{\# of codewords:} $2^3$ 
+            \item \textbf{Dimension:} $\log_{q=2}{2^3} = 3$
+        \end{itemize}
+    \item[Rate] The \textit{Rate} of a code with \textit{dimension} $k$ and \textit{block length} $n$ is $R = \frac{k}{n}$
+        \footnote{$R$ is always between $0 \& 1$ (measure of \textit{density} of information within codewards)}
+
+        \textbf{Note:} higher \textit{Rate} $\implies$ lower \textit{Redundancy}
+    \item[Hamming Distance]
+        \footnote{\textit{Relative Hamming Distance} defined as $\delta(u, v) = \frac{1}{n}\triangle(u, v)$}
+        Let $u, v \in \Sigma^n$. 
+        The \textit{Hamming Distance} between $u \& v$ is $\triangle(u, v) = |\{i \in [n]: u_i \neq v_i\}$
+    \item[Error Correction] Let $C \in \Sigma^n$ be a code, and let $t \geq 1$. $C$ is said to be \textit{$t$-error-correcting} if $\exists$ deconding algorithm $D$ s.t
+        \[
+           \forall c \in C \quad \forall y \in \Sigma^n \text{ s.t } \triangle(c, y) \leq t \quad D(y) = c
+        \]
+        Basically all codewords $y \in \Sigma^n$ with distance $t$ to some codeword in $C$ are mapped to that codeword. 
+        Here error is the \textit{Hamming Distance}
+    \item[Error Detection] $C \subset \Sigma^n$ is \textit{$t$-error-detecting} if $\exists$ detector alogrithm $D$ s.t
+        \[
+            \forall c \in C \quad \forall y \in \Sigma^n \text{ s.t } \triangle(c,y) \leq t \quad D(y) = 
+            \begin{cases*}
+                0 & if $c = y$ \\
+                1 & if $c \neq y$
+            \end{cases*}
+        \]
+        Basically we can detect if the distance bewtween recieved and sent code is less $t$ that some error occured
+    \item[Distance of $C$] The \textit{distance} of code $C$ is
+        \[
+            d = min_{c \neq c' \in C}\triangle(c, c')
+        \]
+\end{description}

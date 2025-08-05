@@ -1,0 +1,103 @@
+
+\section{Stochastic Channels \& Channel Capacity}
+
+So far, we have designed codes to combat a fixed number of errors. In reality, errors occur randomly. To understand the ultimate limits of communication, we must model the communication channel itself as a probabilistic system. This chapter introduces the foundational models for noisy channels and the concept of channel capacity, which defines the maximum rate of reliable communication.
+
+\subsection{Modeling Communication Channels}
+
+A communication channel is a system that takes an input symbol from an alphabet $\mathcal{X}$ and produces an output symbol from an alphabet $\mathcal{Y}$. Due to noise, the output may be different from the input. We model this relationship with conditional probabilities.
+
+\begin{description}
+    \item[Discrete Memoryless Channel] A channel is \textbf{discrete} if the alphabets $\mathcal{X}$ and $\mathcal{Y}$ are finite. It is \textbf{memoryless} if the probability of receiving a certain output symbol depends only on the corresponding input symbol, not on any previous inputs or outputs. Mathematically, for an input sequence $\vec{x} = (x_1, \dots, x_n)$ and output sequence $\vec{y} = (y_1, \dots, y_n)$:
+    \[ P(\vec{y}|\vec{x}) = \prod_{i=1}^n P(y_i|x_i) \]
+    We will focus on these simple but powerful models.
+\end{description}
+
+\subsubsection{The Binary Symmetric Channel (BSC)}
+
+The most fundamental model for a noisy channel is the Binary Symmetric Channel, or BSC.
+
+\begin{description}
+    \item[Definition] The \textbf{Binary Symmetric Channel}, denoted $BSC_p$, has a binary input and output alphabet ($\mathcal{X} = \mathcal{Y} = \{0, 1\}$). It is defined by a single parameter, the \textbf{crossover probability} $p$.
+    \begin{itemize}
+        \item With probability $1-p$, the input bit is transmitted correctly.
+        \item With probability $p$, the input bit is flipped (a "crossover" occurs).
+    \end{itemize}
+    We assume $0 \le p \le 1/2$. If $p > 1/2$, we could simply flip all received bits to get an equivalent channel with crossover probability $1-p < 1/2$.
+
+    The transition probabilities are:
+    \begin{align*}
+        P(Y=0|X=0) &= 1-p & P(Y=1|X=0) &= p \\
+        P(Y=1|X=1) &= 1-p & P(Y=0|X=1) &= p
+    \end{align*}
+\end{description}
+
+%\begin{figure}[h!]
+%    \centering
+%    \includegraphics[width=0.4\textwidth]{bsc_diagram.png}
+%    \caption{The Binary Symmetric Channel ($BSC_p$). An input bit is flipped with probability $p$.}
+%\end{figure}
+
+\subsubsection{The q-ary Symmetric Channel (qSC)}
+
+This is a direct generalization of the BSC to a non-binary alphabet.
+
+\begin{description}
+    \item[Definition] The \textbf{q-ary Symmetric Channel}, denoted $qSC_p$, has an input and output alphabet of size $q$, i.e., $\mathcal{X} = \mathcal{Y} = \{0, 1, \dots, q-1\}$.
+    \begin{itemize}
+        \item With probability $1-p$, the input symbol is transmitted correctly.
+        \item With probability $p$, an error occurs. When an error occurs, the input symbol is changed to one of the other $q-1$ symbols with equal probability. Thus, the probability of it changing to any specific incorrect symbol is $p/(q-1)$.
+    \end{itemize}
+\end{description}
+
+\subsection{Channel Capacity}
+
+The central question of information theory, answered by Claude Shannon, is: what is the maximum rate at which we can communicate over a noisy channel with an arbitrarily low probability of error? This rate is the channel capacity.
+
+\begin{description}
+    \item[Mutual Information] To define capacity, we first need the concept of \textbf{mutual information}, $I(X;Y)$. It measures the amount of information that the output $Y$ provides about the input $X$. It is the reduction in uncertainty about $X$ gained by observing $Y$.
+    \[ I(X;Y) = H(X) - H(X|Y) = H(Y) - H(Y|X) \]
+    Where:
+    \begin{itemize}
+        \item $H(Y)$ is the entropy (total uncertainty) of the output.
+        \item $H(Y|X)$ is the conditional entropy, representing the uncertainty that remains about the output $Y$ even when we know the input $X$. This is the uncertainty caused purely by the channel's noise.
+    \end{itemize}
+    So, $I(X;Y)$ is what's left when we subtract the noise from the total output uncertainty.
+
+    \item[Channel Capacity] The channel capacity, $C$, is the maximum possible mutual information between the input and output, where the maximization is over all possible input distributions $p(x)$.
+    \[ C = \max_{p(x)} I(X;Y) \]
+    Capacity is a property of the channel itself, not of any specific code. It is the "speed limit" for reliable communication over that channel, measured in bits per channel use.
+\end{description}
+
+\subsubsection{Capacity of the BSC}
+
+Let's compute the capacity of the $BSC_p$. We want to maximize $I(X;Y) = H(Y) - H(Y|X)$.
+
+\begin{enumerate}
+    \item \textbf{Calculate $H(Y|X)$:} This is the entropy of the noise. If we know the input $X=x$, the output $Y$ is a random variable that is flipped with probability $p$. The entropy of this process is simply the binary entropy function $H_2(p)$. Since this is true for any input $x$, the average conditional entropy is $H(Y|X) = H_2(p)$.
+
+    \item \textbf{Maximize $H(Y)$:} Our expression is now $I(X;Y) = H(Y) - H_2(p)$. To maximize this, we must maximize $H(Y)$. The output $Y$ is a binary variable, so its entropy is at most 1. This maximum is achieved when the output is uniformly distributed, i.e., $P(Y=0) = P(Y=1) = 1/2$.
+
+    \item \textbf{Find the Maximizing Input Distribution:} An output is uniform if the input is uniform. If we choose $P(X=0)=P(X=1)=1/2$, then $P(Y=1) = P(Y=1|X=0)P(X=0) + P(Y=1|X=1)P(X=1) = p(1/2) + (1-p)(1/2) = 1/2$. So a uniform input gives a uniform output.
+
+    \item \textbf{Result:} With a uniform input, $H(Y)=1$. Therefore, the capacity is:
+    \[ C_{BSC} = 1 - H_2(p) \]
+\end{enumerate}
+This result is beautiful. It says the capacity is 1 (the max possible for a binary channel) minus a penalty term that is exactly the entropy of the noise process. If $p=0$, $C=1$. If $p=0.5$ (total noise), $H_2(0.5)=1$ and $C=0$.
+
+\subsubsection{Capacity of the qSC}
+
+The logic is identical. We want to maximize $I(X;Y) = H(Y) - H(Y|X)$.
+
+\begin{enumerate}
+    \item \textbf{Calculate $H(Y|X)$:} If we know the input $X=x$, the output is $x$ with probability $1-p$, and each of the other $q-1$ symbols with probability $p/(q-1)$. The entropy of this distribution is:
+    \[ H(Y|X=x) = -(1-p)\log_2(1-p) - (q-1)\frac{p}{q-1}\log_2\left(\frac{p}{q-1}\right) \]
+    \[ = -(1-p)\log_2(1-p) - p\log_2(p) + p\log_2(q-1) = H_2(p) + p\log_2(q-1) \]
+    This is the entropy of the noise for the q-ary channel.
+
+    \item \textbf{Maximize $H(Y)$:} We need to maximize $H(Y)$. The output alphabet has size $q$, so the maximum possible entropy is $\log_2(q)$, which is achieved when the output distribution is uniform. This, in turn, is achieved by a uniform input distribution.
+
+    \item \textbf{Result:} The capacity of the q-ary symmetric channel is:
+    \[ C_{qSC} = \log_2(q) - \left( H_2(p) + p\log_2(q-1) \right) \]
+\end{enumerate}
+Again, the capacity is the maximum possible output entropy ($\log_2(q)$) minus a penalty term for the noise.

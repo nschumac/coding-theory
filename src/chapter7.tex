@@ -1,0 +1,85 @@
+
+\section{Expander Codes}
+
+Expander codes represent a significant breakthrough in coding theory, providing the first family of codes with both a constant rate, constant relative distance (asymptotically good), and a linear-time decoding algorithm. They are constructed from a special class of highly connected, sparse graphs called expander graphs. The structure of the graph itself is the key to their remarkable properties.
+
+\subsection{Expander Graphs}
+
+The "backbone" of an expander code is a bipartite graph with strong connectivity properties.
+
+\begin{description}
+    \item[Bipartite Graph] A graph $G=(L \cup R, E)$ is bipartite if its vertices can be divided into two disjoint sets, $L$ (left) and $R$ (right), such that every edge in $E$ connects a vertex in $L$ to one in $R$. We will consider graphs where every vertex on the left has degree $D$, called $D$-regular.
+
+    \item[Neighborhood] For a set of vertices $S \subseteq L$, its neighborhood $\Gamma(S) \subseteq R$ is the set of all vertices in $R$ that are connected by an edge to at least one vertex in $S$.
+
+    \item[Expander Graph] An $(N, M, D, \gamma, \alpha)$ expander is a $D$-regular bipartite graph with $N$ vertices on the left and $M$ vertices on the right. Its expansion property is defined as follows:
+    \[
+        \text{Any subset } S \subseteq L \text{ of size } |S| \le \gamma N \text{ has a large neighborhood: } |\Gamma(S)| > \alpha D |S|
+    \]
+    Here, $\alpha$ is a constant typically close to 1 (e.g., $3/4$) and $\gamma$ is a constant fraction. In simple terms, any "small" set of left vertices connects to a "very large" set of right vertices. This property guarantees that there are no small, isolated parts of the graph, ensuring high connectivity.
+\end{description}
+
+\subsection{Code Construction and Properties}
+
+Expander codes are defined by using a bipartite graph as the blueprint for a parity-check matrix.
+
+\begin{description}
+    \item[Construction] Given a $D$-regular bipartite graph $G$ with $N$ left vertices and $M$ right vertices, we construct a binary linear code as follows:
+    \begin{enumerate}
+        \item The bits of the codeword correspond to the left vertices (the variable nodes). The block length is $n=N$.
+        \item The parity checks correspond to the right vertices (the check nodes).
+        \item The parity-check matrix $H$ is the $M \times N$ bi-adjacency matrix of the graph $G$. An entry $H_{ij}$ is 1 if the $i$-th check node (in $R$) is connected to the $j$-th variable node (in $L$), and 0 otherwise.
+    \end{enumerate}
+    A binary vector $\vec{c} \in \{0,1\}^N$ is a codeword if and only if $H\vec{c}^T = \vec{0} \pmod{2}$. This means for every check node, the sum of its neighboring variable nodes (bits) must be zero.
+\end{description}
+
+%\begin{figure}[h!]
+%    \centering
+%    \includegraphics[width=0.7\textwidth]{s-s-graph.png}
+%    \caption{A bipartite graph and its corresponding parity-check matrix. Each left vertex is a variable (bit), and each right vertex is a parity check.}
+%\end{figure}
+
+\begin{theorem}[Properties of Expander Codes]
+An expander code constructed from an $(N, M, D, \gamma, \alpha)$ expander with $\alpha > 1/2$ has the following properties:
+\begin{itemize}
+    \item \textbf{Block Length:} $n=N$.
+    \item \textbf{Rate:} The number of checks is $M$. The rate $R = (N-M)/N = 1 - M/N$. For a constant-degree expander, $M$ is proportional to $N$, so the rate is a constant greater than 0.
+    \item \textbf{Distance:} The minimum distance $d$ is at least $\gamma N$. This means the code has a constant relative distance $\delta = d/n \ge \gamma > 0$.
+\end{itemize}
+\end{theorem}
+\begin{proof}[Distance Sketch]
+The distance of the code is the size of the smallest non-zero codeword. Let $\vec{c}$ be a non-zero codeword and let $S$ be the set of its non-zero positions (its support). Since $\vec{c}$ is a codeword, all checks are satisfied. This implies that every check node in $\Gamma(S)$ must be connected to at least two nodes in $S$. If a check node were connected to only one node in $S$, that check would fail. This "two-connections" property limits how small $S$ can be, and using the expansion property, one can show that $|S|$ must be large (at least $\gamma N$).
+\end{proof}
+
+\subsection{The Sipser-Spielman Decoding Algorithm}
+
+The true power of expander codes lies in their incredibly simple and fast decoding algorithm. It is an iterative, message-passing algorithm that flips bits one by one until all parity checks are satisfied.
+
+\textbf{The Setup:} We receive a word $\vec{y} \in \{0,1\}^n$ that may contain errors. We want to find the closest codeword $\vec{c}$.
+
+\textbf{The Algorithm:}
+\begin{enumerate}
+    \item \textbf{Initialization:} Let the current word be $\vec{z} = \vec{y}$.
+    \item \textbf{Iteration:} While there are any unsatisfied parity checks:
+    \begin{enumerate}
+        \item Identify the set of unsatisfied check nodes, $U = \{i \in R \mid (H\vec{z}^T)_i = 1\}$.
+        \item Find a variable node $j \in L$ that is "badly-behaved". A simple and effective rule is to find any variable node $j$ that is connected to at least one unsatisfied check node in $U$. A stronger rule used in the analysis is to find a node $j$ that is connected to more unsatisfied checks than satisfied ones.
+        \item Flip the corresponding bit in our working vector: $z_j \leftarrow z_j + 1 \pmod{2}$.
+    \end{enumerate}
+    \item \textbf{Termination:} When all checks are satisfied (the set $U$ is empty), the algorithm terminates. The final vector $\vec{z}$ is the decoded codeword.
+\end{enumerate}
+
+%\begin{figure}[h!]
+%    \centering
+%    \includegraphics[width=0.8\textwidth]{s-s-decoding.png}
+%    \caption{One step of the Sipser-Spielman algorithm. An unsatisfied check is identified, and a connected variable bit is flipped, satisfying it and potentially others.}
+%\end{figure}
+
+\begin{theorem}[Correctness and Runtime]
+For an expander code built from a sufficiently strong expander, if the number of initial errors in $\vec{y}$ is less than $\gamma N/2$, the Sipser-Spielman algorithm is guaranteed to converge to the correct codeword in linear time (i.e., in $O(N)$ steps).
+\end{theorem}
+\begin{proof}[Sketch]
+The core of the proof lies in showing that every bit flip makes progress. Let $E$ be the set of error positions in the current vector $\vec{z}$ compared to the original codeword $\vec{c}$. The unsatisfied checks are a subset of the neighborhood of $E$, $\Gamma(E)$.
+
+The expansion property guarantees that the number of edges between the error set $E$ and its unsatisfied neighbors is large. When we flip a bit $z_j$ (where $j \in E$), we satisfy some of its unsatisfied neighbors. While this flip might dissatisfy some previously satisfied checks, the expansion property ensures that, on balance, the total number of unsatisfied checks decreases with each step. Since the number of unsatisfied checks is a positive integer that decreases with each flip, the algorithm must terminate. The linear time complexity follows from the fact that the number of initial unsatisfied checks is small and each step reduces this number.
+\end{proof}

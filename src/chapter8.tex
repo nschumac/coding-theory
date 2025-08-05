@@ -1,0 +1,87 @@
+
+\section{Locally Decodable Codes}
+
+In many modern applications, such as cloud storage and distributed systems, datasets are enormous. If a massive file is encoded and stored, and we only need to access one small piece of the original data (e.g., one bit of a file), it would be incredibly inefficient to download and decode the entire multi-gigabyte codeword. Locally Decodable Codes (LDCs) are designed to solve this exact problem, allowing for the recovery of individual message bits by reading only a tiny, sub-linear portion of the (potentially corrupted) codeword.
+
+\subsection{Definitions}
+
+\begin{description}
+    \item[Locally Decodable Code (LDC)] An $(r, \delta, q)$-LDC is a code $C: \Sigma^k \to \Sigma^n$ with the following property: For any message $\vec{m} \in \Sigma^k$, any desired index $i \in [k]$, and any received word $\vec{y} \in \Sigma^n$ that is $\delta$-close to the codeword $C(\vec{m})$ (i.e., $\triangle(\vec{y}, C(\vec{m})) \le \delta n$), there exists a randomized decoding algorithm $D$. The algorithm $D$, given index $i$ and access to $\vec{y}$, makes at most $q$ queries to the coordinates of $\vec{y}$ and outputs the correct message symbol $m_i$ with high probability (e.g., $> 2/3$). The number of queries, $q$, is called the locality of the code.
+
+    \item[Locally Correctable Code (LCC)] The definition is nearly identical, but the goal is to recover a symbol of the \textit{codeword}, not the message. An $(r, \delta, q)$-LCC allows for the recovery of any codeword symbol $c_i$ by making at most $q$ queries to the received word $\vec{y}$. Every LCC can be turned into an LDC (by first correcting a codeword symbol and then figuring out which message symbol it corresponds to), but the reverse is not always true.
+\end{description}
+The key feature of these codes is that the locality $q$ is a small constant (like 2 or 3), independent of the block length $n$.
+
+\subsection{The Hadamard Code}
+
+The Hadamard code is the canonical example of an LDC. It has a terrible rate but excellent distance and local decodability.
+
+\begin{description}
+    \item[Construction] Let the message space be $\{0,1\}^k$. We identify the message vectors $\vec{m} \in \{0,1\}^k$ with linear functions $L_{\vec{m}}: \{0,1\}^k \to \{0,1\}$ defined by the inner product: $L_{\vec{m}}(\vec{x}) = \vec{m} \cdot \vec{x} = \sum_{i=1}^k m_i x_i \pmod{2}$. The Hadamard code encodes $\vec{m}$ into a codeword of length $n=2^k$ by evaluating this linear function on all possible inputs $\vec{x} \in \{0,1\}^k$. The codeword is a truth table of the linear function.
+    \[ C(\vec{m}) = (L_{\vec{m}}(\vec{x}))_{\vec{x} \in \{0,1\}^k} \]
+
+    \item[Properties] The Hadamard code is a linear $[2^k, k, 2^{k-1}]$ code. The rate is $k/2^k$, which is extremely low, but the relative distance is $1/2$, which is excellent.
+\end{description}
+
+\begin{theorem}
+The Hadamard code is a 2-query LDC.
+\end{theorem}
+\begin{proof}
+Suppose we want to recover the $i$-th bit of the message, $m_i$. Let $\vec{e}_i$ be the standard basis vector with a 1 in the $i$-th position and 0s elsewhere. The key insight comes from the linearity of the inner product:
+\[ L_{\vec{m}}(\vec{x}) + L_{\vec{m}}(\vec{x} + \vec{e}_i) = (\vec{m} \cdot \vec{x}) + (\vec{m} \cdot (\vec{x} + \vec{e}_i)) = \vec{m} \cdot (2\vec{x} + \vec{e}_i) = \vec{m} \cdot \vec{e}_i = m_i \]
+The equation $m_i = L_{\vec{m}}(\vec{x}) + L_{\vec{m}}(\vec{x} + \vec{e}_i)$ holds for any $\vec{x} \in \{0,1\}^k$. This gives us a simple randomized decoding algorithm:
+
+\textbf{Decoding Algorithm for $m_i$:}
+\begin{enumerate}
+    \item Choose a vector $\vec{x} \in \{0,1\}^k$ uniformly at random.
+    \item Query the received word $\vec{y}$ at the two positions corresponding to $\vec{x}$ and $\vec{x}+\vec{e}_i$. Let the queried values be $y_{\vec{x}}$ and $y_{\vec{x}+\vec{e}_i}$.
+    \item Output their sum: $y_{\vec{x}} + y_{\vec{x}+\vec{e}_i} \pmod{2}$.
+\end{enumerate}
+If the received word $\vec{y}$ has no errors, this output is always correct. If there are errors, this procedure gives the correct answer as long as neither of the two queried positions are corrupted. Since the queries are chosen uniformly at random, the probability of hitting a corrupted coordinate is low, and the algorithm succeeds with high probability.
+\end{proof}
+
+\subsection{Reed-Muller Codes}
+
+Reed-Muller codes generalize Hadamard codes by using multivariate polynomials of higher total degree. They provide a trade-off between rate and locality.
+
+\begin{description}
+    \item[Construction] The Reed-Muller code $RM(m, r)$ encodes a message by interpreting it as the coefficients of an $m$-variable polynomial $P(x_1, \dots, x_m)$ over a field $\mathbb{F}_q$ with total degree at most $r$. The codeword is the evaluation of this polynomial on all possible $q^m$ points in $\mathbb{F}_q^m$.
+    \[ C(P) = (P(\vec{a}))_{\vec{a} \in \mathbb{F}_q^m} \]
+    (Note: The Hadamard code is the special case $RM(m, 1)$ over $\mathbb{F}_2$).
+\end{description}
+
+\begin{theorem}
+The Reed-Muller code $RM(m, r)$ is a $(q, \delta, q)$-LCC. (A slightly different construction gives an $(r+1)$-query LCC).
+\end{theorem}
+\begin{proof}[Sketch of Local Correction]
+Suppose we want to correct the value of the codeword at a specific point $\vec{a} \in \mathbb{F}_q^m$. The true value should be $P(\vec{a})$.
+
+The key idea is that the restriction of a total-degree-$r$ multivariate polynomial $P$ to any line is a univariate polynomial of degree at most $r$.
+
+\textbf{Correction Algorithm for position $\vec{a}$:}
+\begin{enumerate}
+    \item Choose a random line passing through the point $\vec{a}$. A line through $\vec{a}$ can be parameterized as $L(t) = \vec{a} + t\vec{v}$ for a random non-zero direction vector $\vec{v}$ and a scalar $t \in \mathbb{F}_q$.
+    \item Query the received word $\vec{y}$ at all $q$ points on this line: $y_{L(0)}, y_{L(1)}, \dots, y_{L(q-1)}$.
+    \item These $q$ values are evaluations of a univariate polynomial of degree at most $r$. Since $q > r$, we can use a standard decoding algorithm for single-variable polynomials (like Berlekamp-Welch for Reed-Solomon codes) to find the unique polynomial $p(t)$ that agrees with the queried values on the most points.
+    \item The corrected value for position $\vec{a}$ is $p(0)$, since $\vec{a} = L(0)$.
+\end{enumerate}
+If the number of errors is small enough, the random line will have few corrupted points, allowing the univariate decoding to succeed and recover the correct value at $p(0)$. The number of queries is the number of points on the line, which is $q$.
+\end{proof}
+
+\subsection{Private Information Retrieval (PIR)}
+
+LDCs have a surprising and deep connection to a cryptographic problem called Private Information Retrieval.
+
+\begin{description}
+    \item[Definition of PIR] A PIR scheme allows a user to retrieve the $i$-th bit of a database $DB \in \{0,1\}^k$ that is replicated across $N$ non-communicating servers, without any single server learning anything about the index $i$. The goal is to minimize the total communication between the user and the servers.
+
+    \item[Connection to LDCs] A $q$-query LDC gives a simple construction for a $q$-server PIR scheme.
+    \begin{enumerate}
+        \item \textbf{Setup:} The user treats the database $DB$ as a message $\vec{m}$. They compute the corresponding LDC codeword $C(\vec{m})$ of length $n$. Each of the $q$ servers stores this entire codeword. (This is a major simplification; more advanced schemes have servers store parts of the codeword).
+        \item \textbf{Query:} To retrieve the $i$-th bit $m_i$, the user runs the LDC's randomized decoding algorithm. This algorithm generates $q$ query positions, say $j_1, j_2, \dots, j_q$.
+        \item \textbf{Distribution:} The user sends the first query position $j_1$ to Server 1, $j_2$ to Server 2, ..., and $j_q$ to Server $q$.
+        \item \textbf{Response:} Each server responds with the bit stored at its requested position.
+        \item \textbf{Reconstruction:} The user combines the $q$ received bits to reconstruct $m_i$.
+    \end{enumerate}
+    \textbf{Privacy:} The privacy comes from the fact that each server only sees one query position. Since the LDC decoder's queries are randomized, a single query position $j_k$ reveals statistically nothing about the desired index $i$. For the scheme to be perfectly private, we need the distribution of the $k$-th query to be identical regardless of which index $i$ is being decoded. LDCs with this property are sometimes called "smooth".
+\end{description}

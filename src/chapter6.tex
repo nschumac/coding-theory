@@ -1,0 +1,102 @@
+
+\section{Reed-Solomon Codes}
+
+Reed-Solomon (RS) codes are a remarkable family of non-binary, linear codes that achieve the Singleton bound, making them Maximum Distance Separable (MDS). Their algebraic structure, based on polynomials over finite fields, allows for powerful and efficient decoding algorithms. They are among the most widely used codes in practice, found in everything from QR codes and data storage (CDs, DVDs) to deep-space communication.
+
+\subsection{Construction and Properties}
+
+The core idea of Reed-Solomon codes is to encode a message by interpreting it as the coefficients of a polynomial, and then evaluating that polynomial at several points.
+
+\begin{description}
+    \item[Construction] Let $\mathbb{F}_q$ be a finite field of size $q$.
+    \begin{enumerate}
+        \item \textbf{Parameters:} Choose a block length $n \le q$ and a dimension $k < n$.
+        \item \textbf{Message:} A message is a vector $\vec{m} = (m_0, m_1, \dots, m_{k-1}) \in \mathbb{F}_q^k$.
+        \item \textbf{Encoding Polynomial:} Associate the message $\vec{m}$ with a polynomial $P_m(x)$ of degree less than $k$:
+        \[ P_m(x) = m_0 + m_1 x + m_2 x^2 + \dots + m_{k-1} x^{k-1} \]
+        \item \textbf{Evaluation Points:} Choose $n$ distinct evaluation points $\alpha_1, \alpha_2, \dots, \alpha_n$ from $\mathbb{F}_q$.
+        \item \textbf{Codeword:} The corresponding codeword $\vec{c}$ is the evaluation of $P_m(x)$ at these points:
+        \[ \vec{c} = (P_m(\alpha_1), P_m(\alpha_2), \dots, P_m(\alpha_n)) \in \mathbb{F}_q^n \]
+    \end{enumerate}
+    The set of all such codewords forms the Reed-Solomon code, denoted $RS[n, k]_q$.
+\end{description}
+
+\begin{theorem}[Properties of RS Codes]
+The Reed-Solomon code $RS[n, k]_q$ as constructed above is a linear $[n, k, d]_q$ code with minimum distance $d = n - k + 1$.
+\end{theorem}
+\begin{proof}
+\textbf{Linearity:} The mapping from message $\vec{m}$ to codeword $\vec{c}$ is a linear transformation, so the resulting code is a linear subspace of $\mathbb{F}_q^n$. The dimension is clearly $k$, as there are $k$ message symbols.
+
+\textbf{Distance:} We need to find the minimum distance, which for a linear code is the minimum weight of any non-zero codeword. A non-zero codeword corresponds to a non-zero message polynomial $P_m(x)$ of degree at most $k-1$. The components of the codeword are the evaluations $P_m(\alpha_i)$. The weight of the codeword is the number of non-zero components.
+
+A fundamental property of polynomials states that a non-zero polynomial of degree at most $k-1$ can have at most $k-1$ roots. Therefore, $P_m(x)$ can be zero for at most $k-1$ of the evaluation points $\alpha_i$. This means the codeword must have at most $k-1$ zero-components.
+
+The weight of the codeword is the number of non-zero components, so:
+\[ wt(\vec{c}) = n - (\text{number of zero components}) \ge n - (k-1) = n - k + 1 \]
+Thus, the minimum distance is $d = n - k + 1$. This meets the Singleton bound ($d \le n-k+1$) with equality, proving that RS codes are MDS.
+\end{proof}
+
+\subsection{Unique Decoding: The Berlekamp-Welch Algorithm}
+
+The Berlekamp-Welch algorithm provides an efficient way to correct errors in RS codes, as long as the number of errors is not too large. It can uniquely correct up to $t = \lfloor (d-1)/2 \rfloor = \lfloor (n-k)/2 \rfloor$ errors.
+
+\textbf{The Setup:} We sent a codeword $\vec{c} = (P(\alpha_1), \dots, P(\alpha_n))$ but received a word $\vec{y} = (y_1, \dots, y_n)$ which may have up to $t$ errors. Let $E \subset \{1, \dots, n\}$ be the set of error locations, where $|E| \le t$.
+We know:
+\begin{itemize}
+    \item $y_i = P(\alpha_i)$ if $i \notin E$ (correct position)
+    \item $y_i \neq P(\alpha_i)$ if $i \in E$ (error position)
+\end{itemize}
+
+\textbf{The Key Idea:} Instead of trying to find $P(x)$ directly, we search for two polynomials:
+\begin{enumerate}
+    \item An \textbf{error-locator polynomial} $E(x)$ of degree at most $t$. We define it to have roots at the error locations: $E(x) = \prod_{j \in E} (x - \alpha_j)$.
+    \item An auxiliary polynomial $Q(x) = P(x)E(x)$. Its degree is at most $(k-1) + t$.
+\end{enumerate}
+These two polynomials are linked by a key equation that holds for \textit{all} positions $i=1, \dots, n$:
+\[ y_i E(\alpha_i) = Q(\alpha_i) \]
+\begin{proof}
+Case 1 ($i \notin E$): This is a correct position. $y_i = P(\alpha_i)$. So, $y_i E(\alpha_i) = P(\alpha_i)E(\alpha_i) = Q(\alpha_i)$.
+Case 2 ($i \in E$): This is an error position. By definition, $E(\alpha_i) = 0$. So, $y_i E(\alpha_i) = 0$. And $Q(\alpha_i) = P(\alpha_i)E(\alpha_i) = P(\alpha_i) \cdot 0 = 0$.
+The equation holds in both cases.
+\end{proof}
+
+\textbf{The Algorithm:}
+\begin{enumerate}
+    \item \textbf{Set up linear equations:} The equation $y_i E(\alpha_i) = Q(\alpha_i)$ is a linear equation in the unknown coefficients of $Q(x)$ and $E(x)$. We have $n$ such equations, one for each received symbol.
+    Let $Q(x) = q_0 + q_1 x + \dots + q_{k-1+t} x^{k-1+t}$ and $E(x) = e_0 + e_1 x + \dots + e_t x^t$. To make the system homogeneous, we can set the leading coefficient of $E(x)$ to 1 (monic).
+    The number of unknowns is $(k+t)$ for $Q(x)$ and $t$ for $E(x)$ (since $e_t=1$), for a total of $k+2t$ unknowns.
+    The number of equations is $n$. Since $d=n-k+1$ and $t=\lfloor(d-1)/2\rfloor$, we have $n \ge k+2t$. This means we have enough equations to find a unique solution.
+
+    \item \textbf{Solve the system:} Find a non-zero solution for the coefficients of $Q(x)$ and $E(x)$.
+
+    \item \textbf{Recover P(x):} Once $Q(x)$ and $E(x)$ are found, the original message polynomial is recovered by polynomial division:
+    \[ P(x) = \frac{Q(x)}{E(x)} \]
+    If the division has a remainder or if $E(x)$ is the zero polynomial, then more than $t$ errors occurred and the algorithm fails. Otherwise, the resulting $P(x)$ is the decoded message.
+\end{enumerate}
+
+\subsection{List Decoding: The Sudan Algorithm}
+
+What if more than $\lfloor (n-k)/2 \rfloor$ errors occur? Unique decoding is no longer possible. List decoding offers a powerful alternative: instead of returning one codeword, it returns a small list of all codewords that are close to the received word.
+
+The Sudan algorithm finds all polynomials $P(x)$ of degree $<k$ that agree with the received word $\vec{y}$ on at least $T$ positions, where $T$ can be much smaller than the $n-t$ required for unique decoding.
+
+\textbf{Algorithm 1: Interpolation Step}
+The goal is to find a non-zero bivariate polynomial $Q(x,y)$ that has a root at every received point.
+\begin{enumerate}
+    \item \textbf{Goal:} Find a non-zero polynomial $Q(x,y)$ such that for all $i=1, \dots, n$:
+    \[ Q(\alpha_i, y_i) = 0 \]
+    \item \textbf{Method:} We define $Q(x,y) = \sum_{j=0}^{d_x} \sum_{l=0}^{d_y} c_{j,l} x^j y^l$. The conditions $Q(\alpha_i, y_i) = 0$ give $n$ linear equations in the unknown coefficients $c_{j,l}$.
+    \item \textbf{Ensuring a Solution:} The number of unknown coefficients is $(d_x+1)(d_y+1)$. If we choose the degrees $d_x, d_y$ such that the number of unknowns is greater than the number of equations ($n$), a non-zero solution is guaranteed to exist. A standard choice is $d_y = \ell$ and $d_x = \lceil n/\ell \rceil$ for some parameter $\ell$. For RS list decoding, one can choose degrees such that $(d_x+1)(d_y+1) > n$. For example, $d_y \approx \sqrt{n}$ and $d_x \approx \sqrt{n}$.
+\end{enumerate}
+
+\textbf{Algorithm 2: Root-Finding Step}
+The key insight is that if a message polynomial $P(x)$ is a good candidate (i.e., it agrees with $\vec{y}$ on many points), then $(y - P(x))$ will be a factor of the bivariate polynomial $Q(x,y)$ we just found.
+\begin{enumerate}
+    \item \textbf{Setup:} Consider the polynomial $Q(x,y)$ from the previous step as a polynomial in $y$ with coefficients that are polynomials in $x$.
+    \item \textbf{Key Property:} If $P(x)$ is a polynomial of degree $<k$ such that $P(\alpha_i) = y_i$ for at least $T$ values of $i$, and if $T$ is large enough (specifically $T > d_x$), then $(y-P(x))$ must be a factor of $Q(x,y)$.
+    \begin{proof}[Sketch]
+    Define a new polynomial $R(x) = Q(x, P(x))$. The degree of $R(x)$ is at most $d_x + d_y(k-1)$. For every point $i$ where $y_i = P(\alpha_i)$, we have $R(\alpha_i) = Q(\alpha_i, P(\alpha_i)) = Q(\alpha_i, y_i) = 0$. So $R(x)$ has at least $T$ roots. If $T$ is greater than the degree of $R(x)$, then $R(x)$ must be the zero polynomial. This implies that $Q(x, P(x)) \equiv 0$, which means that $(y-P(x))$ is a factor of $Q(x,y)$.
+    \end{proof}
+    \item \textbf{Factorization:} Use a standard algorithm for polynomial factorization to find all factors of $Q(x,y)$ that have the form $(y - P(x))$ where $\deg(P) < k$.
+    \item \textbf{Output:} The list of all such polynomials $P(x)$ is the result of the list decoding.
+\end{enumerate}
