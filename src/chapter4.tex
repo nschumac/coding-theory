@@ -1,18 +1,5 @@
-\section{Upper \& Lower Bounds on Codes}
 
-A central question in coding theory is: for a given block length $n$ and alphabet size $q$, what is the best trade-off between the number of codewords (or the rate, $R$) and the error-correcting capability (the distance, $d$)? This chapter explores the fundamental limits on these parameters.
-
-We will study two types of bounds:
-\begin{itemize}
-    \item \textbf{Upper Bounds:} These establish a ceiling on how good a code can be. They tell us that no code with parameters $(n, d)$ can have more than a certain number of codewords. These are impossibility results.
-    \item \textbf{Lower Bounds:} These establish a floor on how good a code can be. They guarantee the existence of a code with at least a certain number of codewords for a given $(n, d)$. These are existence results, often proven by showing a construction method.
-\end{itemize}
-
-\subsection{Upper Bounds (Limits on Performance)}
-
-\subsubsection{The Singleton Bound}
-
-The Singleton bound is one of the simplest upper bounds. It connects the dimension, block length, and distance of any code, not just linear ones.
+For a given $(n, d)$, \textbf{Upper Bounds} give an upper limit of how many codewords a $Code$ can have. \textbf{Lower Bounds} guarantee the xistence of code with at least a number of codewords.
 
 \begin{theorem}[Singleton Bound]
 For any $(n, M, d)_q$ code,
